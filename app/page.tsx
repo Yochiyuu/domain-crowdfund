@@ -7,17 +7,21 @@ import StatsSidebar from "@/components/stats-sidebar"
 import PlantDetailsModal from "@/components/plant-details-modal"
 import PlantSeedModal from "@/components/plant-seed-modal"
 import { usePlants } from "@/hooks/usePlants"
+import { usePlantStageScheduler } from "@/hooks/usePlantStageScheduler"
 
 export default function Home() {
   const [selectedPlantId, setSelectedPlantId] = useState<bigint | null>(null)
   const [showPlantSeedModal, setShowPlantSeedModal] = useState(false)
   const { plants } = usePlants()
 
+  // Start background scheduler for automatic stage updates
+  const { isRunning } = usePlantStageScheduler()
+
   const selectedPlant = plants.find((p) => p.id === selectedPlantId) || null
 
   return (
     <div className="min-h-screen bg-background">
-      <GardenHeader />
+      <GardenHeader schedulerRunning={isRunning} />
       <div className="flex gap-6 p-6 max-w-7xl mx-auto">
         <main className="flex-1">
           <GardenGrid onSelectPlant={setSelectedPlantId} onPlantSeed={() => setShowPlantSeedModal(true)} />

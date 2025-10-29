@@ -8,6 +8,8 @@ import {
   plantSeed as plantSeedContract,
   waterPlant as waterPlantContract,
   harvestPlant as harvestPlantContract,
+  updatePlantStage as updatePlantStageContract,
+  isStageOutOfSync,
 } from '@/lib/contract'
 import { Plant } from '@/types/contracts'
 import { useToast } from '@/hooks/use-toast'
@@ -122,12 +124,26 @@ export function usePlants() {
 
       setLoading(true)
       try {
+        // Check if stage needs updating
+        const plant = await getPlant(client, plantId)
+        const needsStageUpdate = isStageOutOfSync(plant)
+
+        if (needsStageUpdate) {
+          toast({
+            title: 'Syncing stage...',
+            description: 'Updating plant stage first, then watering.',
+          })
+          await updatePlantStageContract(client, account, plantId)
+        }
+
         // Send transaction and wait for receipt
-        const result = await waterPlantContract(client, account, plantId)
+        await waterPlantContract(client, account, plantId)
 
         toast({
           title: 'Plant watered!',
-          description: 'Your plant has been watered successfully. FREE - gas only!',
+          description: needsStageUpdate
+            ? 'Stage synced and plant watered successfully!'
+            : 'Your plant has been watered successfully. FREE - gas only!',
         })
 
         // Transaction is confirmed, refresh plants immediately
@@ -160,12 +176,26 @@ export function usePlants() {
 
       setLoading(true)
       try {
+        // Check if stage needs updating before harvest
+        const plant = await getPlant(client, plantId)
+        const needsStageUpdate = isStageOutOfSync(plant)
+
+        if (needsStageUpdate) {
+          toast({
+            title: 'Syncing stage...',
+            description: 'Updating plant to blooming stage before harvest.',
+          })
+          await updatePlantStageContract(client, account, plantId)
+        }
+
         // Send transaction and wait for receipt
-        const result = await harvestPlantContract(client, account, plantId)
+        await harvestPlantContract(client, account, plantId)
 
         toast({
           title: 'Plant harvested!',
-          description: 'You received 0.003 ETH reward! 🎉',
+          description: needsStageUpdate
+            ? 'Stage synced and harvested successfully! You received 0.003 ETH 🎉'
+            : 'You received 0.003 ETH reward! 🎉',
         })
 
         // Transaction is confirmed, refresh plants immediately
@@ -175,6 +205,44 @@ export function usePlants() {
         toast({
           title: 'Error',
           description: err.message || 'Failed to harvest plant. Please try again.',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoading(false)
+      }
+    },
+    [client, account, toast, fetchPlants]
+  )
+
+  // Update plant stage manually
+  const updatePlantStage = useCallback(
+    async (plantId: bigint) => {
+      if (!client || !account) {
+        toast({
+          title: 'Wallet not connected',
+          description: 'Please connect your wallet first',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      setLoading(true)
+      try {
+        // Send transaction and wait for receipt
+        const result = await updatePlantStageContract(client, account, plantId)
+
+        toast({
+          title: 'Stage updated!',
+          description: 'Plant stage has been synchronized with blockchain.',
+        })
+
+        // Transaction is confirmed, refresh plants immediately
+        await fetchPlants()
+      } catch (err: any) {
+        console.error('Error updating plant stage:', err)
+        toast({
+          title: 'Error',
+          description: err.message || 'Failed to update plant stage. Please try again.',
           variant: 'destructive',
         })
       } finally {
@@ -214,5 +282,6 @@ export function usePlants() {
     plantSeed,
     waterPlant,
     harvestPlant,
+    updatePlantStage,
   }
 }

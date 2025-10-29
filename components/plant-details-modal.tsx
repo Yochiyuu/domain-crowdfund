@@ -4,9 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
-import { Droplets, Sparkles, TrendingUp, Coins, Skull } from "lucide-react"
+import { Droplets, Sparkles, TrendingUp, Coins, Skull, RefreshCw } from "lucide-react"
 import { Plant, GrowthStage, STAGE_NAMES } from "@/types/contracts"
-import { formatPlantAge, formatLastWatered, canHarvest, getPlantProgress, getClientWaterLevel, isCritical } from "@/lib/contract"
+import { formatPlantAge, formatLastWatered, canHarvest, getPlantProgress, getClientWaterLevel, isCritical, isStageOutOfSync, getExpectedStage } from "@/lib/contract"
 import { usePlants } from "@/hooks/usePlants"
 import { HARVEST_REWARD } from "@/types/contracts"
 
@@ -31,7 +31,7 @@ interface PlantDetailsModalProps {
 }
 
 export default function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalProps) {
-  const { harvestPlant, waterPlant, loading } = usePlants()
+  const { harvestPlant, waterPlant, updatePlantStage, loading } = usePlants()
 
   if (!plant) return null
 
@@ -40,6 +40,8 @@ export default function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetai
   const canHarvestPlant = canHarvest(plant)
   const currentWaterLevel = getClientWaterLevel(plant)
   const critical = isCritical(plant)
+  const stageOutOfSync = isStageOutOfSync(plant)
+  const expectedStage = getExpectedStage(plant)
 
   const handleHarvest = async () => {
     await harvestPlant(plant.id)
@@ -49,6 +51,11 @@ export default function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetai
   const handleWater = async () => {
     await waterPlant(plant.id)
     onClose()
+  }
+
+  const handleUpdateStage = async () => {
+    await updatePlantStage(plant.id)
+    // Don't close modal - let user see the updated stage
   }
 
   return (
@@ -169,6 +176,44 @@ export default function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetai
               <p className="text-xs text-gray-600 dark:text-gray-400">💀 Plant died from dehydration</p>
             )}
           </div>
+
+          {/* Stage sync warning */}
+          {!plant.isDead && stageOutOfSync && (
+            <Card className="p-4 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border-orange-500/30">
+              <div className="space-y-3">
+                <div className="text-center space-y-1">
+                  <p className="font-semibold text-foreground flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 text-orange-500" />
+                    Stage Out of Sync
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    On-chain: {STAGE_NAMES[plant.stage]} → Expected: {STAGE_NAMES[expectedStage]}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Update the stage to sync blockchain state with actual growth time
+                  </p>
+                </div>
+                <Button
+                  onClick={handleUpdateStage}
+                  disabled={loading}
+                  className="w-full gap-2 bg-orange-600 hover:bg-orange-700 text-white"
+                  size="sm"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      Update Stage
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+          )}
 
           {/* Harvest info */}
           {canHarvestPlant && (

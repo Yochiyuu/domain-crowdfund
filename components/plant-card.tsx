@@ -2,9 +2,9 @@
 
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Droplets, Sparkles, Clock, Skull } from "lucide-react"
+import { Droplets, Sparkles, Clock, Skull, RefreshCw } from "lucide-react"
 import { Plant, GrowthStage, STAGE_NAMES } from "@/types/contracts"
-import { formatLastWatered, formatPlantAge, getPlantProgress, getClientWaterLevel, isCritical } from "@/lib/contract"
+import { formatLastWatered, formatPlantAge, getPlantProgress, getClientWaterLevel, isCritical, isStageOutOfSync } from "@/lib/contract"
 
 const STAGE_COLORS = {
   seed: "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100",
@@ -46,6 +46,7 @@ export default function PlantCard({ plant }: { plant: Plant }) {
   const progress = getPlantProgress(plant)
   const currentWaterLevel = getClientWaterLevel(plant)
   const critical = isCritical(plant)
+  const stageOutOfSync = isStageOutOfSync(plant)
 
   return (
     <Card
@@ -100,6 +101,11 @@ export default function PlantCard({ plant }: { plant: Plant }) {
             )}
           </>
         )}
+        {!plant.isDead && stageOutOfSync && (
+          <div className="absolute top-3 left-3 animate-pulse">
+            <RefreshCw className="w-5 h-5 text-orange-500" />
+          </div>
+        )}
         {!plant.isDead && currentWaterLevel > 80 && (
           <div className="absolute top-3 right-3">
             <Droplets className="w-5 h-5 text-blue-500 animate-pulse" />
@@ -127,6 +133,11 @@ export default function PlantCard({ plant }: { plant: Plant }) {
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${STAGE_COLORS[stageKey]}`}>
                     {stageKey.charAt(0).toUpperCase() + stageKey.slice(1)}
                   </span>
+                  {stageOutOfSync && (
+                    <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-orange-500/20 text-orange-700 dark:text-orange-300 border border-orange-500/30">
+                      🔄 Needs Update
+                    </span>
+                  )}
                   {plant.stage === GrowthStage.BLOOMING && (
                     <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 border border-yellow-500/30">
                       Ready to Harvest!

@@ -1,4 +1,9 @@
 // Contract interaction utilities for Lisk Garden DApp (Simplified Workshop Version)
+//
+// WATER PRESERVATION MECHANIC:
+// Once a plant reaches BLOOMING stage, water stops depleting.
+// This ensures plants don't die while waiting for harvest.
+// Players have unlimited time to harvest blooming plants without water loss.
 
 import { liskSepolia } from 'panna-sdk'
 import { prepareContractCall, sendTransaction, readContract, waitForReceipt } from 'thirdweb/transaction'
@@ -142,7 +147,12 @@ export async function getPlant(client: any, plantId: bigint): Promise<Plant> {
   return parsePlantData(rawPlant)
 }
 
-export async function calculateWaterLevel(client: any, plantId: bigint): Promise<number> {
+export async function calculateWaterLevel(client: any, plantId: bigint, plant?: Plant): Promise<number> {
+  // Optimization: Skip blockchain call for blooming plants - water is preserved
+  if (plant && plant.stage === GrowthStage.BLOOMING) {
+    return plant.waterLevel
+  }
+
   const contract = getContract({
     client,
     chain: liskSepolia,
@@ -263,6 +273,12 @@ export function getClientWaterLevel(plant: Plant): number {
     return 0
   }
 
+  // BLOOMING plants don't lose water - they're ready to harvest!
+  // This prevents plants from dying after reaching full maturity
+  if (plant.stage === GrowthStage.BLOOMING) {
+    return plant.waterLevel // Keep water level stable at blooming stage
+  }
+
   const now = Date.now() / 1000
   const timeSinceWatered = now - Number(plant.lastWatered)
   const depletionIntervals = Math.floor(timeSinceWatered / WATER_DEPLETION_TIME)
@@ -278,13 +294,37 @@ export function getClientWaterLevel(plant: Plant): number {
 // Check if plant needs watering (below 50%)
 export function needsWater(plant: Plant): boolean {
   if (plant.isDead || !plant.exists) return false
+  // Blooming plants don't need water - they're preserved at harvest stage
+  if (plant.stage === GrowthStage.BLOOMING) return false
   return getClientWaterLevel(plant) < 50
 }
 
 // Check if plant is critical (below 20%)
 export function isCritical(plant: Plant): boolean {
   if (plant.isDead || !plant.exists) return false
+  // Blooming plants can't be critical - water is preserved
+  if (plant.stage === GrowthStage.BLOOMING) return false
   return getClientWaterLevel(plant) < 20
+}
+
+// Calculate expected stage based on time (what stage the plant SHOULD be at)
+export function getExpectedStage(plant: Plant): GrowthStage {
+  if (plant.isDead || !plant.exists) return plant.stage
+
+  const now = Date.now() / 1000
+  const planted = Number(plant.plantedDate)
+  const timePassed = now - planted
+
+  // Calculate which stage based on time
+  const calculatedStage = Math.min(Math.floor(timePassed / STAGE_DURATION), 3)
+  return calculatedStage as GrowthStage
+}
+
+// Check if plant stage is out of sync (on-chain stage < expected stage)
+export function isStageOutOfSync(plant: Plant): boolean {
+  if (plant.isDead || !plant.exists) return false
+  const expectedStage = getExpectedStage(plant)
+  return plant.stage < expectedStage
 }
 
 export { LISK_GARDEN_CONTRACT_ADDRESS, PLANT_PRICE, HARVEST_REWARD, STAGE_DURATION }

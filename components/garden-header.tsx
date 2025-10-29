@@ -1,9 +1,13 @@
 "use client"
 
-import { Leaf } from "lucide-react"
+import { Leaf, RefreshCw } from "lucide-react"
 import { LoginButton, useActiveAccount, liskSepolia } from "panna-sdk"
 
-export default function GardenHeader() {
+interface GardenHeaderProps {
+  schedulerRunning?: boolean
+}
+
+export default function GardenHeader({ schedulerRunning = false }: GardenHeaderProps) {
   const activeAccount = useActiveAccount()
   const isConnected = !!activeAccount
 
@@ -20,7 +24,15 @@ export default function GardenHeader() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {schedulerRunning && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30">
+              <RefreshCw className="w-4 h-4 text-green-600 dark:text-green-400 animate-spin" />
+              <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                Auto-Sync Active
+              </span>
+            </div>
+          )}
           <LoginButton chain={liskSepolia} />
         </div>
       </div>
