@@ -1,83 +1,77 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Leaf, Sparkles, Coins, Skull, Droplets, Clock } from "lucide-react"
+import { Layers, CheckCircle, Coins, XCircle, Clock, Info, Target, Users } from "lucide-react"
 import { usePlants } from "@/hooks/usePlants"
 import { useContract } from "@/hooks/useContract"
-import { GrowthStage } from "@/types/contracts"
-import {
-  PLANT_PRICE,
-  HARVEST_REWARD,
-  STAGE_DURATION,
-  WATER_DEPLETION_TIME,
-  WATER_DEPLETION_RATE
-} from "@/types/contracts"
+// Asumsi Anda sudah mengubah types/contracts.ts
+import { GrowthStage as ProjectStage, PLANT_PRICE, HARVEST_REWARD, STAGE_DURATION, WATER_DEPLETION_TIME, WATER_DEPLETION_RATE } from "@/types/contracts"
 
 interface StatsSidebarProps {
-  selectedPlantId: bigint | null
+  selectedProjectId: bigint | null // ganti nama
 }
 
-export default function StatsSidebar({ selectedPlantId }: StatsSidebarProps) {
-  const { plants } = usePlants()
+export default function StatsSidebar({ selectedProjectId }: StatsSidebarProps) {
+  const { plants: projects } = usePlants() // ganti nama
   const { isConnected, address } = useContract()
 
-  const bloomingPlants = plants.filter((p) => p.stage === GrowthStage.BLOOMING && !p.isDead).length
-  const growingPlants = plants.filter((p) => p.stage !== GrowthStage.BLOOMING && !p.isDead).length
-  const deadPlants = plants.filter((p) => p.isDead).length
-  const alivePlants = plants.filter((p) => !p.isDead).length
+  // Sesuaikan logika ini dengan stage proyek Anda
+  const successfulProjects = projects.filter((p) => p.stage === ProjectStage.BLOOMING && !p.isDead).length // BLOOMING -> SUCCESSFUL
+  const activeProjects = projects.filter((p) => p.stage !== ProjectStage.BLOOMING && !p.isDead).length
+  const failedProjects = projects.filter((p) => p.isDead).length // isDead -> FAILED/EXPIRED
 
   return (
     <div className="space-y-4 sticky top-24">
-      {/* Garden Stats */}
-      <Card className="p-4 bg-gradient-to-br from-card to-card/50 border border-border animate-slide-in-up hover:shadow-lg transition-all duration-300 ease-out">
+      {/* Statistik Platform */}
+      <Card className="p-4 bg-linear-to-br from-card to-card/50 border border-border animate-slide-in-up hover:shadow-lg transition-all duration-300 ease-out">
         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Leaf className="w-5 h-5 text-primary" />
-          Garden Stats
+          <Layers className="w-5 h-5 text-primary" />
+          Statistik Platform
         </h3>
         {isConnected ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between p-2 rounded bg-muted/50 hover:bg-muted transition-all duration-300 ease-out">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Leaf className="w-4 h-4 text-primary" />
-                Total Plants
+                <Layers className="w-4 h-4 text-primary" />
+                Total Proyek
               </span>
-              <span className="font-semibold text-foreground">{plants.length}</span>
+              <span className="font-semibold text-foreground">{projects.length}</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-muted/50 hover:bg-muted transition-all duration-300 ease-out">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Leaf className="w-4 h-4 text-green-500" />
-                Alive
+                <Clock className="w-4 h-4 text-blue-500" />
+                Aktif
               </span>
-              <span className="font-semibold text-foreground">{alivePlants}</span>
+              <span className="font-semibold text-foreground">{activeProjects}</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-muted/50 hover:bg-muted transition-all duration-300 ease-out">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Sparkles className="w-4 h-4 text-yellow-500" />
-                Blooming
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Sukses
               </span>
-              <span className="font-semibold text-foreground">{bloomingPlants}</span>
+              <span className="font-semibold text-foreground">{successfulProjects}</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-muted/50 hover:bg-muted transition-all duration-300 ease-out">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Leaf className="w-4 h-4 text-emerald-500" />
-                Growing
+                <XCircle className="w-4 h-4 text-gray-500" />
+                Gagal/Kadaluarsa
               </span>
-              <span className="font-semibold text-foreground">{growingPlants}</span>
+              <span className="font-semibold text-foreground">{failedProjects}</span>
             </div>
             <div className="flex items-center justify-between p-2 rounded bg-muted/50 hover:bg-muted transition-all duration-300 ease-out">
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Skull className="w-4 h-4 text-gray-500" />
-                Dead
+                <Users className="w-4 h-4 text-accent" />
+                Total Pendana
               </span>
-              <span className="font-semibold text-foreground">{deadPlants}</span>
+              <span className="font-semibold text-foreground">1 (Demo)</span>
             </div>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">Connect wallet to view stats</p>
+          <p className="text-sm text-muted-foreground text-center py-4">Hubungkan wallet untuk melihat statistik</p>
         )}
       </Card>
 
-      {/* Wallet Info */}
+      {/* Info Wallet (Biarkan sama) */}
       {isConnected && (
         <Card
           className="p-4 border border-border animate-slide-in-up transition-all duration-300 ease-out"
@@ -89,72 +83,50 @@ export default function StatsSidebar({ selectedPlantId }: StatsSidebarProps) {
           </h3>
           <div className="space-y-2">
             <div className="p-2 rounded bg-muted/30">
-              <p className="text-xs text-muted-foreground mb-1">Address</p>
+              <p className="text-xs text-muted-foreground mb-1">Alamat</p>
               <p className="text-xs font-mono text-foreground truncate">{address}</p>
             </div>
           </div>
         </Card>
       )}
 
-      {/* Quick Info */}
+      {/* Info Cepat (Ubah) */}
       <Card
         className="p-4 border border-border animate-slide-in-up transition-all duration-300 ease-out"
         style={{ animationDelay: "0.2s" }}
       >
         <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          Game Info
+          <Info className="w-5 h-5 text-primary" />
+          Info Aturan (Contoh)
         </h3>
         <div className="space-y-3 text-sm">
           <div className="p-3 rounded bg-primary/10 border border-primary/20">
-            <p className="text-xs text-muted-foreground mb-1">Plant Cost</p>
+            <p className="text-xs text-muted-foreground mb-1">Biaya Membuat Proyek</p>
             <p className="font-semibold text-foreground">{PLANT_PRICE} ETH</p>
           </div>
           <div className="p-3 rounded bg-green-500/10 border border-green-500/20">
-            <p className="text-xs text-muted-foreground mb-1">Harvest Reward</p>
+            <p className="text-xs text-muted-foreground mb-1">Target Pendanaan (Demo)</p>
             <p className="font-semibold text-foreground">{HARVEST_REWARD} ETH</p>
           </div>
           <div className="p-3 rounded bg-blue-500/10 border border-blue-500/20">
-            <p className="text-xs text-muted-foreground mb-1">Watering Cost</p>
-            <p className="font-semibold text-primary">FREE (gas only)</p>
+            <p className="text-xs text-muted-foreground mb-1">Biaya Pendanaan</p>
+            <p className="font-semibold text-primary">GRATIS (hanya gas)</p>
           </div>
         </div>
       </Card>
 
-      {/* How to Play */}
+      {/* Cara Kerja (Ubah) */}
       <Card
         className="p-4 border border-border animate-slide-in-up transition-all duration-300 ease-out"
         style={{ animationDelay: "0.3s" }}
       >
-        <h3 className="font-semibold text-foreground mb-3">How to Play</h3>
+        <h3 className="font-semibold text-foreground mb-3">Cara Kerja (Demo)</h3>
         <div className="space-y-2 text-xs text-muted-foreground">
-          <p>1. Plant a seed (costs {PLANT_PRICE} ETH)</p>
-          <p>2. Water it regularly (FREE!)</p>
-          <p>3. Wait 3 minutes for full growth</p>
-          <p>4. Harvest for {HARVEST_REWARD} ETH reward</p>
-          <p className="text-primary font-semibold pt-2">💰 3x profit on every harvest!</p>
-          <p className="text-red-500 font-semibold pt-2">⚠️ Keep water above 0% or plant dies!</p>
-        </div>
-      </Card>
-
-      {/* Game Mechanics */}
-      <Card
-        className="p-4 border border-border animate-slide-in-up transition-all duration-300 ease-out"
-        style={{ animationDelay: "0.4s" }}
-      >
-        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-          <Clock className="w-5 h-5 text-primary" />
-          Growth & Water
-        </h3>
-        <div className="space-y-3 text-sm">
-          <div className="p-3 rounded bg-blue-500/10 border border-blue-500/20">
-            <p className="text-xs text-muted-foreground mb-1">Stage Duration</p>
-            <p className="font-semibold text-foreground">{STAGE_DURATION} seconds each</p>
-          </div>
-          <div className="p-3 rounded bg-red-500/10 border border-red-500/20">
-            <p className="text-xs text-muted-foreground mb-1">Water Depletion</p>
-            <p className="font-semibold text-foreground">{WATER_DEPLETION_RATE}% every {WATER_DEPLETION_TIME}s</p>
-          </div>
+          <p>1. Buat proyek (biaya {PLANT_PRICE} ETH)</p>
+          <p>2. Ajak orang mendanai (GRATIS!)</p>
+          <p>3. Capai target {HARVEST_REWARD} ETH dalam {STAGE_DURATION * 3 / 60} menit</p>
+          <p>4. Klaim dana jika target tercapai</p>
+          <p className="text-red-500 font-semibold pt-2">⚠️ Proyek gagal jika waktu habis sebelum target!</p>
         </div>
       </Card>
     </div>
