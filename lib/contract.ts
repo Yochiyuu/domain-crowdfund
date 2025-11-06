@@ -45,6 +45,7 @@ export function parsePlantData(rawPlant: any): Plant {
 // Contract write functions using Panna SDK
 
 export async function plantSeed(client: any, account: any, quantity: number) {
+  const TOTAL_PLANT_PRICE = parseFloat(PLANT_PRICE) * quantity;
   const tx = prepareContractCall({
     contract: getContract({
       client,
@@ -53,7 +54,7 @@ export async function plantSeed(client: any, account: any, quantity: number) {
     }),
     method: 'function plantSeed(uint16 quantity) payable returns (uint256)',
     params: [quantity],
-    value: toWei(PLANT_PRICE),
+    value: toWei(TOTAL_PLANT_PRICE.toString()),
   })
 
   const result = await sendTransaction({
@@ -144,7 +145,7 @@ export async function getPlant(client: any, plantId: bigint): Promise<Plant> {
 
   const rawPlant = await readContract({
     contract,
-    method: 'function getPlant(uint256 plantId) view returns (uint256 id, address owner, uint8 stage, uint256 plantedDate, uint256 lastWatered, uint8 waterLevel, bool exists, bool isDead)',
+    method: 'function getPlant(uint256 plantId) view returns (uint256 id, address owner, uint8 stage, uint256 plantedDate, uint256 lastWatered, uint8 waterLevel, uint16 quantity, bool exists, bool isDead)',
     params: [plantId],
   })
   return parsePlantData(rawPlant)
