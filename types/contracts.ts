@@ -43,6 +43,7 @@ export const DONATION_LEVEL_NAME = {
 
 // Contract constants
 export const PLANT_PRICE = "0.001"; // ETH (Biaya Pembuatan Proyek)
+export const BASE_WATER_FEE = "0.0001"; // ETH (Biaya Water Plant)
 export const HARVEST_REWARD = "0.003"; // ETH (Target Pendanaan)
 export const STAGE_DURATION = 60; // 1 menit (Durasi Kampanye per stage)
 export const WATER_DEPLETION_TIME = 30; // (Interval kalkulasi waktu/kegagalan)

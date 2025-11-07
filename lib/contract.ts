@@ -18,6 +18,7 @@ import {
   STAGE_NAMES,
   DONATION_LEVEL_NAME,
   PLANT_PRICE,
+  BASE_WATER_FEE,
   HARVEST_REWARD,
   STAGE_DURATION,
   WATER_DEPLETION_TIME,
@@ -69,14 +70,17 @@ export async function plantSeed(client: any, account: any, quantity: number) {
 }
 
 export async function waterPlant(client: any, account: any, plantId: bigint) {
+  const plant = await getPlant(client, plantId);
+  const TOTAL_WATER_PRICE = parseFloat(BASE_WATER_FEE) * plant.quantity;
   const tx = prepareContractCall({
     contract: getContract({
       client,
       chain: liskSepolia,
       address: LISK_GARDEN_CONTRACT_ADDRESS,
     }),
-    method: 'function waterPlant(uint256 plantId)',
+    method: 'function waterPlant(uint256 plantId) payable',
     params: [plantId],
+    value: toWei(TOTAL_WATER_PRICE.toString()),
   })
 
   const result = await sendTransaction({
