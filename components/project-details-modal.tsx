@@ -31,14 +31,14 @@ const STAGE_EMOJIS = {
   [ProjectStage.SEED]: "💡", // FUNDING
   [ProjectStage.SPROUT]: "🚀", // SUCCESSFUL
   [ProjectStage.GROWING]: "⌛", // EXPIRED (logika lama, bisa diubah)
-  [ProjectStage.BLOOMING]: "✅", // CLAIMED
+  [ProjectStage.ADULT]: "✅", // CLAIMED
 }
 
 const STAGE_BACKGROUNDS = {
   [ProjectStage.SEED]: "from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950",
   [ProjectStage.SPROUT]: "from-green-50 to-lime-50 dark:from-green-950 dark:to-lime-950",
   [ProjectStage.GROWING]: "from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950",
-  [ProjectStage.BLOOMING]: "from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950",
+  [ProjectStage.ADULT]: "from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950",
 }
 
 
@@ -250,7 +250,7 @@ export default function ProjectDetailsModal({ project, isOpen, onClose }: Projec
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        Klaim Dana
+                        Klaim NFT
                       </>
                     )}
                   </Button>

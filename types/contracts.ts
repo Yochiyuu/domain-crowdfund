@@ -5,7 +5,7 @@ export enum GrowthStage {
   SEED = 0, // Nama enum tetap sama: SEED, tapi artinya 'FUNDING'
   SPROUT = 1, // Nama enum tetap sama: SPROUT, tapi artinya 'SUCCESSFUL'
   GROWING = 2, // Nama enum tetap sama: GROWING, tapi artinya 'EXPIRED' (logika bisa beda)
-  BLOOMING = 3, // Nama enum tetap sama: BLOOMING, tapi artinya 'CLAIMED'
+  ADULT = 3, // Nama enum tetap sama: BLOOMING, tapi artinya 'CLAIMED'
 }
 
 export enum DonationLevel {
@@ -29,10 +29,10 @@ export interface Plant {
 
 // Nama tampilan stage (sesuaikan dengan logika UI Anda)
 export const STAGE_NAMES = {
-  [GrowthStage.SEED]: "Funding",
-  [GrowthStage.SPROUT]: "Successful",
-  [GrowthStage.GROWING]: "Expired", // Sesuaikan ini jika logika Anda beda
-  [GrowthStage.BLOOMING]: "Claimed",
+  [GrowthStage.SEED]: "Seed",
+  [GrowthStage.SPROUT]: "Sprout",
+  [GrowthStage.GROWING]: "Growing", // Sesuaikan ini jika logika Anda beda
+  [GrowthStage.ADULT]: "Adult",
 } as const;
 
 export const DONATION_LEVEL_NAME = {

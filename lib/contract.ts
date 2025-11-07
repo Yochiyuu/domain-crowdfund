@@ -1,9 +1,9 @@
 // Contract interaction utilities for Lisk Garden DApp (Simplified Workshop Version)
 //
 // WATER PRESERVATION MECHANIC:
-// Once a plant reaches BLOOMING stage, water stops depleting.
+// Once a plant reaches ADULT stage, water stops depleting.
 // This ensures plants don't die while waiting for harvest.
-// Players have unlimited time to harvest blooming plants without water loss.
+// Players have unlimited time to harvest ADULT plants without water loss.
 
 import { liskSepolia } from 'panna-sdk'
 import { prepareContractCall, sendTransaction, readContract, waitForReceipt } from 'thirdweb/transaction'
@@ -24,6 +24,8 @@ import {
   WATER_DEPLETION_TIME,
   WATER_DEPLETION_RATE,
 } from '@/types/contracts'
+import { toast } from '@/hooks/use-toast'
+import { uploadNftMetadata } from '@/hooks/usePinata'
 
 // Convert raw contract plant data to typed Plant interface
 export function parsePlantData(rawPlant: any): Plant {
@@ -94,15 +96,26 @@ export async function waterPlant(client: any, account: any, plantId: bigint) {
   return result
 }
 
-export async function harvestPlant(client: any, account: any, plantId: bigint) {
+export async function getNFT(client: any, account: any, plantId: bigint, plant: Plant) {
+  const uri = await uploadNftMetadata(plant)
+
+  if(!uri) {
+    toast({
+      title: 'Error',
+      description: 'Failed to create uri. Please try again.',
+      variant: 'destructive',
+    })
+    return
+  }
+
   const tx = prepareContractCall({
     contract: getContract({
       client,
       chain: liskSepolia,
       address: LISK_GARDEN_CONTRACT_ADDRESS,
     }),
-    method: 'function harvestPlant(uint256 plantId)',
-    params: [plantId],
+    method: 'function getNFT(uint256 plantId, string memory uri)',
+    params: [plantId, uri],
   })
 
   const result = await sendTransaction({
@@ -117,25 +130,34 @@ export async function harvestPlant(client: any, account: any, plantId: bigint) {
 }
 
 export async function updatePlantStage(client: any, account: any, plantId: bigint) {
-  const tx = prepareContractCall({
-    contract: getContract({
-      client,
-      chain: liskSepolia,
-      address: LISK_GARDEN_CONTRACT_ADDRESS,
-    }),
-    method: 'function updatePlantStage(uint256 plantId)',
-    params: [plantId],
-  })
+  try {
+    const tx = prepareContractCall({
+      contract: getContract({
+        client,
+        chain: liskSepolia,
+        address: LISK_GARDEN_CONTRACT_ADDRESS,
+      }),
+      method: 'function updatePlantStage(uint256 plantId)',
+      params: [plantId],
+    })
 
-  const result = await sendTransaction({
-    account,
-    transaction: tx,
-  })
+    const result = await sendTransaction({
+      account,
+      transaction: tx,
+    })
 
-  // Wait for transaction to be mined
-  await waitForReceipt(result)
+    // Wait for transaction to be mined
+    const recipe = await waitForReceipt(result)
 
-  return result
+    toast({
+      title: 'Stage updated!',
+      description: `${JSON.stringify(recipe)}`,
+    })
+
+    return result
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 // Contract read functions using Panna SDK
@@ -156,8 +178,8 @@ export async function getPlant(client: any, plantId: bigint): Promise<Plant> {
 }
 
 export async function calculateWaterLevel(client: any, plantId: bigint, plant?: Plant): Promise<number> {
-  // Optimization: Skip blockchain call for blooming plants - water is preserved
-  if (plant && plant.stage === GrowthStage.BLOOMING) {
+  // Optimization: Skip blockchain call for ADULT plants - water is preserved
+  if (plant && plant.stage === GrowthStage.ADULT) {
     return plant.waterLevel
   }
 
@@ -257,7 +279,7 @@ export function getStageDisplayName(stage: GrowthStage): string {
 }
 
 export function canHarvest(plant: Plant): boolean {
-  return plant.stage === GrowthStage.BLOOMING && plant.exists && !plant.isDead
+  return plant.stage === GrowthStage.ADULT && plant.exists && !plant.isDead
 }
 
 export function getPlantProgress(plant: Plant): number {
@@ -266,7 +288,7 @@ export function getPlantProgress(plant: Plant): number {
   const planted = Number(plant.plantedDate)
   const timePassed = now - planted
 
-  if (plant.stage === GrowthStage.BLOOMING) return 100
+  if (plant.stage === GrowthStage.ADULT) return 100
 
   // Use STAGE_DURATION constant (60 seconds = 1 minute per stage)
   const currentStageStart = Number(plant.stage) * STAGE_DURATION
@@ -281,10 +303,10 @@ export function getClientWaterLevel(plant: Plant): number {
     return 0
   }
 
-  // BLOOMING plants don't lose water - they're ready to harvest!
+  // ADULT plants don't lose water - they're ready to harvest!
   // This prevents plants from dying after reaching full maturity
-  if (plant.stage === GrowthStage.BLOOMING) {
-    return plant.waterLevel // Keep water level stable at blooming stage
+  if (plant.stage === GrowthStage.ADULT) {
+    return plant.waterLevel // Keep water level stable at ADULT stage
   }
 
   const now = Date.now() / 1000
@@ -302,16 +324,16 @@ export function getClientWaterLevel(plant: Plant): number {
 // Check if plant needs watering (below 50%)
 export function needsWater(plant: Plant): boolean {
   if (plant.isDead || !plant.exists) return false
-  // Blooming plants don't need water - they're preserved at harvest stage
-  if (plant.stage === GrowthStage.BLOOMING) return false
+  // ADULT plants don't need water - they're preserved at harvest stage
+  if (plant.stage === GrowthStage.ADULT) return false
   return getClientWaterLevel(plant) < 50
 }
 
 // Check if plant is critical (below 20%)
 export function isCritical(plant: Plant): boolean {
   if (plant.isDead || !plant.exists) return false
-  // Blooming plants can't be critical - water is preserved
-  if (plant.stage === GrowthStage.BLOOMING) return false
+  // ADULT plants can't be critical - water is preserved
+  if (plant.stage === GrowthStage.ADULT) return false
   return getClientWaterLevel(plant) < 20
 }
 

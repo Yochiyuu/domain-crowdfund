@@ -7,7 +7,7 @@ import {
   getPlant,
   plantSeed as plantSeedContract,
   waterPlant as waterPlantContract,
-  harvestPlant as harvestPlantContract,
+  getNFT as harvestPlantContract,
   updatePlantStage as updatePlantStageContract,
   isStageOutOfSync,
 } from '@/lib/contract'
@@ -205,7 +205,7 @@ export function usePlants() {
         }
 
         // Send transaction and wait for receipt
-        await harvestPlantContract(client, account, plantId)
+        await harvestPlantContract(client, account, plantId, plant)
 
         toast({
           title: 'Plant harvested!',
