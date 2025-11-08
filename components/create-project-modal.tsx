@@ -57,7 +57,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white">
                 Total Biaya: {(parseFloat(PLANT_PRICE) * quantity).toFixed(4)} ETH
               </p>
             </div>

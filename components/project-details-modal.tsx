@@ -104,6 +104,10 @@ export default function ProjectDetailsModal({ project, isOpen, onClose }: Projec
           {/* Info Proyek */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground">Quantity</span>
+              <span className="text-sm font-semibold text-foreground capitalize">{project.quantity}</span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">Status</span>
               <span className="text-sm font-semibold text-foreground capitalize">{stageKey}</span>
             </div>
@@ -137,7 +141,7 @@ export default function ProjectDetailsModal({ project, isOpen, onClose }: Projec
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Clock className={`w-4 h-4 ${isExpired ? 'text-gray-400' : 'text-blue-500'}`} />
-                Sisa Waktu (Demo)
+                Water Level
               </span>
               {/* Ini menggunakan waterLevel sbg sisa waktu */}
               <span className="text-sm font-semibold text-foreground">{currentFunding}%</span>
@@ -155,7 +159,7 @@ export default function ProjectDetailsModal({ project, isOpen, onClose }: Projec
           </div>
 
           {/* Stage sync warning (Biarkan) */}
-          {!isExpired && stageOutOfSync && (
+          {/* {!isExpired && stageOutOfSync && (
             <Card className="p-4 bg-linear-to-br from-orange-500/10 to-yellow-500/10 border-orange-500/30">
                 <div className="text-center space-y-1">
                   <p className="font-semibold text-foreground flex items-center justify-center gap-2">
@@ -188,7 +192,7 @@ export default function ProjectDetailsModal({ project, isOpen, onClose }: Projec
                   )}
                 </Button>
             </Card>
-          )}
+          )} */}
 
           {/* Info Klaim Dana (Pengganti Harvest) */}
           {canClaim && (
