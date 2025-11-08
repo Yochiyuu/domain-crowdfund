@@ -39,7 +39,7 @@ export const uploadNftMetadata = async (
         const result = await uploadRequest.json();
 
         // Asumsi server mengembalikan URL penuh (seperti dari pinata.gateways.public.convert(cid))
-        const metadataUrl = result;
+        const metadataUrl = result.cid;
 
         console.log(`Metadata berhasil diunggah! URL: ${metadataUrl}`);
         alert(`Metadata berhasil diunggah! URL: ${metadataUrl}`);
